@@ -139,6 +139,7 @@ async def generate_speech(
             mode="generate",
             max_chunk_chars=data.max_chunk_chars,
             crossfade_ms=data.crossfade_ms,
+            speech_speed=data.speech_speed,
         )
     )
 
@@ -396,6 +397,11 @@ async def stream_speech(
         from ..utils.audio import normalize_audio
 
         audio = normalize_audio(audio)
+
+    if data.speech_speed != 1.0:
+        from ..utils.audio import change_audio_speed
+
+        audio = change_audio_speed(audio, data.speech_speed)
 
     wav_bytes = tts.audio_to_wav_bytes(audio, sample_rate)
 

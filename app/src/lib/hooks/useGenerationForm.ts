@@ -47,6 +47,7 @@ export function useGenerationForm(options: UseGenerationFormOptions = {}) {
   const { settings: genSettings } = useGenerationSettings();
   const maxChunkChars = genSettings?.max_chunk_chars ?? 800;
   const crossfadeMs = genSettings?.crossfade_ms ?? 50;
+  const speechSpeed = genSettings?.speech_speed ?? 1.0;
   const normalizeAudio = genSettings?.normalize_audio ?? true;
   const selectedEngine = useUIStore((state) => state.selectedEngine);
   const [downloadingModelName, setDownloadingModelName] = useState<string | null>(null);
@@ -155,6 +156,7 @@ export function useGenerationForm(options: UseGenerationFormOptions = {}) {
         personality: data.personality || undefined,
         max_chunk_chars: maxChunkChars,
         crossfade_ms: crossfadeMs,
+        speech_speed: speechSpeed,
         normalize: normalizeAudio,
         effects_chain: effectsChain?.length ? effectsChain : undefined,
       });

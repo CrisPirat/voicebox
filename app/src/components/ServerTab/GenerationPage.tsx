@@ -16,6 +16,7 @@ export function GenerationPage() {
   const { settings, update } = useGenerationSettings();
   const persistedMaxChunkChars = settings?.max_chunk_chars ?? 800;
   const persistedCrossfadeMs = settings?.crossfade_ms ?? 50;
+  const persistedSpeechSpeed = settings?.speech_speed ?? 1.0;
   const normalizeAudio = settings?.normalize_audio ?? true;
   const autoplayOnGenerate = settings?.autoplay_on_generate ?? true;
   // Slider mirrors persist on commit (pointer-up / keyboard-release) only —
@@ -23,8 +24,10 @@ export function GenerationPage() {
   // trip mid-drag failures could leave persisted state out of sync with UI.
   const [maxChunkChars, setMaxChunkChars] = useState(persistedMaxChunkChars);
   const [crossfadeMs, setCrossfadeMs] = useState(persistedCrossfadeMs);
+  const [speechSpeed, setSpeechSpeed] = useState(persistedSpeechSpeed);
   useEffect(() => setMaxChunkChars(persistedMaxChunkChars), [persistedMaxChunkChars]);
   useEffect(() => setCrossfadeMs(persistedCrossfadeMs), [persistedCrossfadeMs]);
+  useEffect(() => setSpeechSpeed(persistedSpeechSpeed), [persistedSpeechSpeed]);
   const [opening, setOpening] = useState(false);
   const [generationsPath, setGenerationsPath] = useState<string | null>(null);
 
@@ -77,6 +80,27 @@ export function GenerationPage() {
             max={5000}
             step={50}
             aria-label={t('settings.generation.chunkLimit.title')}
+          />
+        </SettingRow>
+
+        <SettingRow
+          title={t('settings.generation.speed.title')}
+          description={t('settings.generation.speed.description')}
+          action={
+            <span className="text-sm tabular-nums text-muted-foreground">
+              {t('settings.generation.speed.value', { speed: speechSpeed.toFixed(2) })}
+            </span>
+          }
+        >
+          <Slider
+            id="speechSpeed"
+            value={[speechSpeed]}
+            onValueChange={([value]) => setSpeechSpeed(value)}
+            onValueCommit={([value]) => update({ speech_speed: value })}
+            min={0.5}
+            max={2}
+            step={0.05}
+            aria-label={t('settings.generation.speed.title')}
           />
         </SettingRow>
 

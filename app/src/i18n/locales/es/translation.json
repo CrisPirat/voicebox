@@ -397,6 +397,11 @@
       "noDescription": "Sin descripción",
       "designed": "diseñada",
       "export": "Exportar perfil",
+      "duplicate": "Duplicar perfil",
+      "duplicateCreated": "Perfil duplicado",
+      "duplicateCreatedDescription": "Se creó {{name}}. Añade una muestra nueva para que sea otra voz.",
+      "duplicateFailed": "Error al duplicar el perfil",
+      "duplicateFailedFallback": "No se pudo duplicar este perfil.",
       "edit": "Editar perfil",
       "delete": "Eliminar perfil",
       "selectLabel": "{{name}}, {{language}}. Seleccionar como voz para la generación.",
@@ -847,6 +852,11 @@
         "description": "Mezcla el audio entre fragmentos para suavizar las transiciones. Pon 0 para un corte seco.",
         "cut": "Corte",
         "ms": "{{ms}} ms"
+      },
+      "speed": {
+        "title": "Velocidad de voz",
+        "description": "Postprocesa el audio generado más rápido o más lento sin cambiar el tono.",
+        "value": "{{speed}}x"
       },
       "normalize": {
         "title": "Normalizar audio",

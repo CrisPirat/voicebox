@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils/cn';
 import { useGenerationStore } from '@/stores/generationStore';
 import { useStoryStore } from '@/stores/storyStore';
 import { useUIStore } from '@/stores/uiStore';
-import { EngineModelSelector } from './EngineModelSelector';
+import { applyEngineSelection, EngineModelSelector } from './EngineModelSelector';
 import { ParalinguisticInput } from './ParalinguisticInput';
 
 interface FloatingGenerateBoxProps {
@@ -144,14 +144,6 @@ export function FloatingGenerateBox({
   }, [watchedEngine, setSelectedEngine]);
 
   // Sync generation form language, engine, and effects with selected profile
-  type EngineValue =
-    | 'qwen'
-    | 'luxtts'
-    | 'chatterbox'
-    | 'chatterbox_turbo'
-    | 'tada'
-    | 'kokoro'
-    | 'qwen_custom_voice';
   useEffect(() => {
     if (selectedProfile?.language) {
       form.setValue('language', selectedProfile.language as LanguageCode);
@@ -159,7 +151,16 @@ export function FloatingGenerateBox({
     // Auto-switch engine to match the profile
     const engine = selectedProfile?.default_engine ?? selectedProfile?.preset_engine;
     if (engine) {
-      form.setValue('engine', engine as EngineValue);
+      const modelSize = form.getValues('modelSize');
+      const engineSelection =
+        engine === 'qwen'
+          ? `qwen:${modelSize === '0.6B' ? '0.6B' : '1.7B'}`
+          : engine === 'qwen_custom_voice'
+            ? `qwen_custom_voice:${modelSize === '0.6B' ? '0.6B' : '1.7B'}`
+            : engine === 'tada'
+              ? `tada:${selectedProfile?.language === 'en' && modelSize !== '3B' ? '1B' : '3B'}`
+              : engine;
+      applyEngineSelection(form, engineSelection);
     } else if (selectedProfile && selectedProfile.voice_type !== 'preset') {
       // Cloned/designed profile with no default — ensure a compatible (non-preset) engine
       const currentEngine = form.getValues('engine');
@@ -597,7 +598,7 @@ export function FloatingGenerateBox({
                   />
 
                   <FormItem className="flex-1 space-y-0">
-                    <EngineModelSelector form={form} compact />
+                    <EngineModelSelector form={form} compact selectedProfile={selectedProfile} />
                   </FormItem>
 
                   <FormItem className="flex-1 space-y-0">

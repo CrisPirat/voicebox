@@ -397,6 +397,11 @@
       "noDescription": "No description",
       "designed": "designed",
       "export": "Export profile",
+      "duplicate": "Duplicate profile",
+      "duplicateCreated": "Profile duplicated",
+      "duplicateCreatedDescription": "Created {{name}}. Add a new sample to make it a separate voice.",
+      "duplicateFailed": "Failed to duplicate profile",
+      "duplicateFailedFallback": "Could not duplicate this profile.",
       "edit": "Edit profile",
       "delete": "Delete profile",
       "selectLabel": "{{name}}, {{language}}. Select as voice for generation.",
@@ -847,6 +852,11 @@
         "description": "Blends audio between chunks to smooth transitions. Set to 0 for a hard cut.",
         "cut": "Cut",
         "ms": "{{ms}}ms"
+      },
+      "speed": {
+        "title": "Speech speed",
+        "description": "Post-processes generated audio faster or slower without changing pitch.",
+        "value": "{{speed}}x"
       },
       "normalize": {
         "title": "Normalize audio",

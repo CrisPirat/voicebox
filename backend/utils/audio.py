@@ -44,6 +44,13 @@ def normalize_audio(
     return audio
 
 
+def change_audio_speed(audio: np.ndarray, speed: float = 1.0) -> np.ndarray:
+    """Change audio duration without changing pitch."""
+    if abs(speed - 1.0) < 0.001:
+        return audio.astype(np.float32)
+    return librosa.effects.time_stretch(audio.astype(np.float32), rate=speed).astype(np.float32)
+
+
 def load_audio(
     path: str,
     sample_rate: int = 24000,

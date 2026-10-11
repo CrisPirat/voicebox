@@ -1,10 +1,11 @@
-import { Download, Edit, Sparkles, Trash2, Wand2 } from 'lucide-react';
+import { Copy, Download, Edit, Sparkles, Trash2, Wand2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CircleButton } from '@/components/ui/circle-button';
+import { useToast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import type { VoiceProfileResponse } from '@/lib/api/types';
-import { useDeleteProfile, useExportProfile } from '@/lib/hooks/useProfiles';
+import { apiClient } from '@/lib/api/client';
+import type { LanguageCode } from '@/lib/constants/languages';
+import { useCreateProfile, useDeleteProfile, useExportProfile } from '@/lib/hooks/useProfiles';
 import { cn } from '@/lib/utils/cn';
 import { useUIStore } from '@/stores/uiStore';
 
@@ -31,8 +34,10 @@ interface ProfileCardProps {
 
 export function ProfileCard({ profile, disabled }: ProfileCardProps) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  const createProfile = useCreateProfile();
   const deleteProfile = useDeleteProfile();
   const exportProfile = useExportProfile();
   const setEditingProfileId = useUIStore((state) => state.setEditingProfileId);
@@ -69,6 +74,41 @@ export function ProfileCard({ profile, disabled }: ProfileCardProps) {
   const handleExport = (e: React.MouseEvent) => {
     e.stopPropagation();
     exportProfile.mutate(profile.id);
+  };
+
+  const handleDuplicate = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const copy = await createProfile.mutateAsync({
+        name: `${profile.name} Copy ${Date.now().toString().slice(-4)}`.slice(0, 100),
+        description: profile.description,
+        language: profile.language as LanguageCode,
+        voice_type: profile.voice_type,
+        preset_engine: profile.preset_engine,
+        preset_voice_id: profile.preset_voice_id,
+        design_prompt: profile.design_prompt,
+        default_engine: profile.default_engine,
+        personality: profile.personality?.trim() || undefined,
+      });
+
+      if (profile.effects_chain?.length) {
+        await apiClient.updateProfileEffects(copy.id, profile.effects_chain);
+      }
+
+      setSelectedProfileId(copy.id);
+      setEditingProfileId(copy.id);
+      setProfileDialogOpen(true);
+      toast({
+        title: t('profiles.card.duplicateCreated'),
+        description: t('profiles.card.duplicateCreatedDescription', { name: copy.name }),
+      });
+    } catch (error) {
+      toast({
+        title: t('profiles.card.duplicateFailed'),
+        description: error instanceof Error ? error.message : t('profiles.card.duplicateFailedFallback'),
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -136,6 +176,12 @@ export function ProfileCard({ profile, disabled }: ProfileCardProps) {
               onClick={handleExport}
               disabled={exportProfile.isPending}
               aria-label={t('profiles.card.export')}
+            />
+            <CircleButton
+              icon={Copy}
+              onClick={handleDuplicate}
+              disabled={createProfile.isPending}
+              aria-label={t('profiles.card.duplicate')}
             />
             <CircleButton
               icon={Edit}

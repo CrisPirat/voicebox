@@ -84,6 +84,7 @@ export interface GenerationRequest {
   personality?: boolean;
   max_chunk_chars?: number;
   crossfade_ms?: number;
+  speech_speed?: number;
   normalize?: boolean;
   effects_chain?: EffectConfig[];
 }
@@ -244,6 +245,7 @@ export interface CaptureReadinessResponse {
 export interface GenerationSettings {
   max_chunk_chars: number;
   crossfade_ms: number;
+  speech_speed: number;
   normalize_audio: boolean;
   autoplay_on_generate: boolean;
 }

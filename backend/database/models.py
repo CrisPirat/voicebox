@@ -229,6 +229,7 @@ class GenerationSettings(Base):
     id = Column(Integer, primary_key=True, default=1)
     max_chunk_chars = Column(Integer, nullable=False, default=800)
     crossfade_ms = Column(Integer, nullable=False, default=50)
+    speech_speed = Column(Float, nullable=False, default=1.0)
     normalize_audio = Column(Boolean, nullable=False, default=True)
     autoplay_on_generate = Column(Boolean, nullable=False, default=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

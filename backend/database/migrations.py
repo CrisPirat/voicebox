@@ -41,6 +41,7 @@ def run_migrations(engine) -> None:
     _migrate_generations(engine, inspector, tables)
     _migrate_effect_presets(engine, inspector, tables)
     _migrate_generation_versions(engine, inspector, tables)
+    _migrate_generation_settings(engine, inspector, tables)
     _migrate_capture_settings(engine, inspector, tables)
     _migrate_mcp_bindings(engine, inspector, tables)
     _normalize_storage_paths(engine, tables)
@@ -200,6 +201,19 @@ def _migrate_generation_versions(engine, inspector, tables: set[str]) -> None:
     columns = _get_columns(inspector, "generation_versions")
     if "source_version_id" not in columns:
         _add_column(engine, "generation_versions", "source_version_id VARCHAR", "source_version_id")
+
+
+def _migrate_generation_settings(engine, inspector, tables: set[str]) -> None:
+    if "generation_settings" not in tables:
+        return
+    columns = _get_columns(inspector, "generation_settings")
+    if "speech_speed" not in columns:
+        _add_column(
+            engine,
+            "generation_settings",
+            "speech_speed FLOAT NOT NULL DEFAULT 1.0",
+            "speech_speed",
+        )
 
 
 def _migrate_capture_settings(engine, inspector, tables: set[str]) -> None:
