@@ -300,6 +300,7 @@ if __name__ == "__main__":
             host=args.host,
             port=args.port,
             log_level="info",
+            access_log=False,
         )
     except Exception as e:
         logger.error(f"Server startup failed: {e}", exc_info=True)

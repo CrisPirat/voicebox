@@ -172,8 +172,9 @@ export function ModelManagement() {
     refetchInterval: (query) => {
       const data = query.state.data;
       const hasActive = data?.downloads.some((d) => d.status === 'downloading');
-      return hasActive ? 1000 : 5000;
+      return hasActive ? 1000 : false;
     },
+    refetchOnWindowFocus: false,
   });
 
   // HuggingFace model card query - only fetches when modal is open and model has a repo ID

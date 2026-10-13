@@ -542,6 +542,14 @@
         "params": {
           "semitones": "Semitones to shift"
         }
+      },
+      "callcenter_ambience": {
+        "label": "Call Center Ambience",
+        "params": {
+          "level_db": "Background level (dB RMS)",
+          "highpass_hz": "Noise high-pass cutoff (Hz)",
+          "lowpass_hz": "Noise low-pass cutoff (Hz)"
+        }
       }
     },
     "builtinPresets": {
@@ -560,6 +568,10 @@
       "Deep Voice": {
         "name": "Deep Voice",
         "description": "Lower pitch with added warmth"
+      },
+      "Subtle Call Center": {
+        "name": "Subtle Call Center",
+        "description": "Very low filtered background ambience without overpowering speech"
       }
     }
   },

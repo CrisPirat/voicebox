@@ -3,8 +3,10 @@ import { apiClient } from '@/lib/api/client';
 import type { ActiveDownloadTask } from '@/lib/api/types';
 import { useGenerationStore } from '@/stores/generationStore';
 
-// Polling interval in milliseconds
-const POLL_INTERVAL = 30000;
+// Polling interval in milliseconds. This is intentionally slow because
+// per-generation progress uses SSE; this hook is only a safety net for
+// restoring tasks after refresh or startup.
+const POLL_INTERVAL = 120000;
 
 /**
  * Hook to monitor active tasks (downloads and generations).

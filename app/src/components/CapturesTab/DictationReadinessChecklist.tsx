@@ -94,13 +94,14 @@ export function DictationReadinessChecklist({
   const { data: activeTasks } = useQuery({
     queryKey: ['activeTasks'],
     queryFn: () => apiClient.getActiveTasks(),
-    // Mirror ModelManagement's cadence: 1s while a download is in flight,
-    // 5s otherwise. Keeps progress feeling live without hammering when idle.
+    // Poll only while work is active. React Query still fetches once on mount,
+    // but idle pages do not keep hitting /tasks/active forever.
     refetchInterval: (query) => {
       const data = query.state.data;
       const hasActive = data?.downloads.some((d) => d.status === 'downloading');
-      return hasActive ? 1000 : 5000;
+      return hasActive ? 1000 : false;
     },
+    refetchOnWindowFocus: false,
   });
 
   // Memo so the Map identity is stable across renders that don't change

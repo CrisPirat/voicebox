@@ -151,7 +151,7 @@ dev: _ensure-venv _ensure-sidecar
     $backendJob = $null; \
     try { $null = Invoke-WebRequest -Uri "http://127.0.0.1:17493/health" -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop; Write-Host "Backend already running on http://localhost:17493" } catch { \
         Write-Host "Starting backend on http://localhost:17493 ..."; \
-        $backendJob = Start-Process -PassThru -NoNewWindow -FilePath "{{ python }}" -ArgumentList "-m","uvicorn","backend.main:app","--reload","--port","17493"; \
+        $backendJob = Start-Process -PassThru -NoNewWindow -FilePath "{{ python }}" -ArgumentList "-m","uvicorn","backend.main:app","--reload","--port","17493","--no-access-log"; \
         Start-Sleep -Seconds 2; \
     }; \
     Write-Host "Starting Tauri desktop app..."; \
@@ -160,11 +160,11 @@ dev: _ensure-venv _ensure-sidecar
 # Start backend only
 [unix]
 dev-backend: _ensure-venv
-    {{ venv_bin }}/uvicorn backend.main:app --reload --port 17493
+    {{ venv_bin }}/uvicorn backend.main:app --reload --port 17493 --no-access-log
 
 [windows]
 dev-backend: _ensure-venv
-    & "{{ python }}" -m uvicorn backend.main:app --reload --port 17493
+    & "{{ python }}" -m uvicorn backend.main:app --reload --port 17493 --no-access-log
 
 # Start Tauri desktop app only (backend must be running separately)
 [unix]
@@ -186,7 +186,7 @@ dev-web: _ensure-venv
         echo "Backend already running on http://localhost:17493"
     else
         echo "Starting backend on http://localhost:17493 ..."
-        {{ venv_bin }}/uvicorn backend.main:app --reload --port 17493 &
+        {{ venv_bin }}/uvicorn backend.main:app --reload --port 17493 --no-access-log &
         backend_pid=$!
         sleep 2
     fi
@@ -200,7 +200,7 @@ dev-web: _ensure-venv
     $backendJob = $null; \
     try { $null = Invoke-WebRequest -Uri "http://127.0.0.1:17493/health" -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop; Write-Host "Backend already running on http://localhost:17493" } catch { \
         Write-Host "Starting backend on http://localhost:17493 ..."; \
-        $backendJob = Start-Process -PassThru -NoNewWindow -FilePath "{{ python }}" -ArgumentList "-m","uvicorn","backend.main:app","--reload","--port","17493"; \
+        $backendJob = Start-Process -PassThru -NoNewWindow -FilePath "{{ python }}" -ArgumentList "-m","uvicorn","backend.main:app","--reload","--port","17493","--no-access-log"; \
         Start-Sleep -Seconds 2; \
     }; \
     Write-Host "Starting web app..."; \

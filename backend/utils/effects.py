@@ -15,6 +15,7 @@ Supported effect types:
   - highpass     (high-pass filter)
   - lowpass      (low-pass filter)
   - pitch_shift (semitone pitch shifting)
+  - callcenter_ambience (subtle filtered background noise)
 """
 
 from __future__ import annotations
@@ -144,6 +145,16 @@ EFFECT_REGISTRY: Dict[str, Dict[str, Any]] = {
             "semitones": {"default": 0.0, "min": -12.0, "max": 12.0, "step": 0.5, "description": "Semitones to shift"},
         },
     },
+    "callcenter_ambience": {
+        "cls": None,
+        "label": "Call Center Ambience",
+        "description": "Subtle filtered background noise for a call-center/phone-line feel.",
+        "params": {
+            "level_db": {"default": -38.0, "min": -60.0, "max": -20.0, "step": 0.5, "description": "Background level (dB RMS)"},
+            "highpass_hz": {"default": 250.0, "min": 20.0, "max": 1000.0, "step": 10.0, "description": "Noise high-pass cutoff (Hz)"},
+            "lowpass_hz": {"default": 3800.0, "min": 1000.0, "max": 12000.0, "step": 50.0, "description": "Noise low-pass cutoff (Hz)"},
+        },
+    },
 }
 
 
@@ -252,6 +263,22 @@ BUILTIN_PRESETS: Dict[str, Dict[str, Any]] = {
             },
         ],
     },
+    "subtle_callcenter": {
+        "name": "Subtle Call Center",
+        "sort_order": 10,
+        "description": "Very low filtered background ambience without overpowering speech",
+        "effects_chain": [
+            {
+                "type": "callcenter_ambience",
+                "enabled": True,
+                "params": {
+                    "level_db": -40.0,
+                    "highpass_hz": 250.0,
+                    "lowpass_hz": 3600.0,
+                },
+            },
+        ],
+    },
 }
 
 
@@ -328,6 +355,8 @@ def build_pedalboard(effects_chain: List[Dict[str, Any]]) -> Pedalboard:
         effect_type = effect["type"]
         registry = EFFECT_REGISTRY[effect_type]
         cls = registry["cls"]
+        if cls is None:
+            continue
 
         # Merge defaults with provided params
         params = {}
@@ -337,6 +366,45 @@ def build_pedalboard(effects_chain: List[Dict[str, Any]]) -> Pedalboard:
         plugins.append(cls(**params))
 
     return Pedalboard(plugins)
+
+
+def _apply_callcenter_ambience(audio: np.ndarray, sample_rate: int, params: Dict[str, float]) -> np.ndarray:
+    """Mix subtle band-limited noise behind speech."""
+    if audio.size == 0:
+        return audio
+
+    level_db = params.get("level_db", -38.0)
+    highpass_hz = params.get("highpass_hz", 250.0)
+    lowpass_hz = params.get("lowpass_hz", 3800.0)
+
+    rng = np.random.default_rng()
+    noise = rng.normal(0.0, 1.0, audio.shape).astype(np.float32)
+
+    noise_2d = noise[np.newaxis, :] if noise.ndim == 1 else noise
+    board = Pedalboard([
+        HighpassFilter(cutoff_frequency_hz=highpass_hz),
+        LowpassFilter(cutoff_frequency_hz=lowpass_hz),
+    ])
+    noise = board(noise_2d, sample_rate)[0] if noise.ndim == 1 else board(noise_2d, sample_rate)
+
+    noise_rms = float(np.sqrt(np.mean(noise**2)))
+    if noise_rms <= 0:
+        return audio
+
+    target_rms = 10 ** (level_db / 20)
+    noise = noise * (target_rms / noise_rms)
+
+    return np.clip(audio.astype(np.float32) + noise.astype(np.float32), -1.0, 1.0)
+
+
+def _apply_pedalboard(audio: np.ndarray, sample_rate: int, plugins: list) -> np.ndarray:
+    if not plugins:
+        return audio
+
+    board = Pedalboard(plugins)
+    audio_2d = audio[np.newaxis, :] if audio.ndim == 1 else audio
+    processed = board(audio_2d.astype(np.float32), sample_rate)
+    return processed[0] if audio.ndim == 1 else processed
 
 
 def apply_effects(
@@ -357,17 +425,29 @@ def apply_effects(
     if not effects_chain:
         return audio
 
-    board = build_pedalboard(effects_chain)
+    processed = audio.astype(np.float32)
+    pending_plugins = []
 
-    # pedalboard expects shape (channels, samples)
-    if audio.ndim == 1:
-        audio_2d = audio[np.newaxis, :]
-    else:
-        audio_2d = audio
+    for effect in effects_chain:
+        if not effect.get("enabled", True):
+            continue
 
-    processed = board(audio_2d.astype(np.float32), sample_rate)
+        effect_type = effect["type"]
+        registry = EFFECT_REGISTRY[effect_type]
 
-    # Return same dimensionality as input
-    if audio.ndim == 1:
-        return processed[0]
-    return processed
+        params = {
+            pname: effect.get("params", {}).get(pname, pdef["default"])
+            for pname, pdef in registry["params"].items()
+        }
+
+        if effect_type == "callcenter_ambience":
+            processed = _apply_pedalboard(processed, sample_rate, pending_plugins)
+            pending_plugins = []
+            processed = _apply_callcenter_ambience(processed, sample_rate, params)
+            continue
+
+        cls = registry["cls"]
+        if cls is not None:
+            pending_plugins.append(cls(**params))
+
+    return _apply_pedalboard(processed, sample_rate, pending_plugins)

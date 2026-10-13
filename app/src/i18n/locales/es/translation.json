@@ -542,6 +542,14 @@
         "params": {
           "semitones": "Semitonos a desplazar"
         }
+      },
+      "callcenter_ambience": {
+        "label": "Ambiente de callcenter",
+        "params": {
+          "level_db": "Nivel de fondo (dB RMS)",
+          "highpass_hz": "Corte paso alto del ruido (Hz)",
+          "lowpass_hz": "Corte paso bajo del ruido (Hz)"
+        }
       }
     },
     "builtinPresets": {
@@ -560,6 +568,10 @@
       "Deep Voice": {
         "name": "Voz grave",
         "description": "Tono más grave con calidez añadida"
+      },
+      "Subtle Call Center": {
+        "name": "Callcenter sutil",
+        "description": "Ambiente de fondo muy bajo y filtrado sin tapar la voz"
       }
     }
   },
